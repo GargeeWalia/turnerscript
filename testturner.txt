@@ -1,0 +1,142 @@
+package selenium;
+
+import java.io.File;
+import java.io.FileInputStream;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+public class testturner {
+	public static WebDriver driver;
+	public static WebDriverWait wait;
+
+	public static FileInputStream fis;
+
+	public static XSSFWorkbook workbook ;
+
+	public static XSSFSheet readsheet;
+	public void launchurl() {
+		try {
+			System.setProperty("webdriver.chrome.driver",
+					System.getProperty("user.dir") + "\\Driver\\chromedriver.exe");
+			driver = new ChromeDriver();
+			driver.get("http://www.tcm.com/tcmdb/");
+			driver.manage().window().maximize();
+		} catch (Exception e) {
+			System.out.println("Site not accessible" + e.getMessage());
+		}
+	}
+	
+	public void checkMovies(){
+		try{
+			File file = new File(System.getProperty("user.dir") + "\\Data\\DataSet.xlsx");
+
+			FileInputStream inp = new FileInputStream(file);
+
+			workbook = new XSSFWorkbook(inp);
+
+			 readsheet = workbook.getSheetAt(0);
+
+			wait = new WebDriverWait(driver, 10);
+
+			for (int i = 0; i <=5; i++) {
+				ArrayList<WebElement> movielist = (ArrayList<WebElement>) wait.until(ExpectedConditions
+						.visibilityOfAllElementsLocatedBy(By.xpath("//div[@id='movieSearchList']//a")));
+				String moviename = movielist.get(i).getText();
+
+				String cellvalue = readsheet.getRow(i).getCell(0).getStringCellValue();
+				System.out.println("Movie link present on page " + moviename);
+				if (moviename.equals(cellvalue)) {
+					System.out.println("Movie link present on page " + moviename);
+					// System.out.println("Movie link present on page --" +
+					// moviename);
+				} else {
+					System.out.println("Movie link not  present on page ");
+				}
+
+				movielist.get(i).click();
+
+				// check header txt
+
+				WebElement overview = driver.findElement(By.xpath("//div[@class='expandbox h1bsynop']//p"));
+
+				String title = overview.getText();
+
+				String cell2 = readsheet.getRow(i).getCell(1).getStringCellValue();
+
+				if (cell2.equals(title)) {
+					System.out.println("Heading present on page " + title);
+				} else {
+					System.out.println("Header not  present on page " + cell2);
+
+				}
+
+				List<WebElement> actors = driver.findElements(By.xpath("//div[@class='credit-rw']//strong//a"));
+
+				String actor1 = actors.get(2).getText();
+
+				String actor2 = actors.get(3).getText();
+
+				String celldata = readsheet.getRow(i).getCell(2).getStringCellValue();
+
+				String celldata1 = readsheet.getRow(i).getCell(3).getStringCellValue();
+
+				if (actor1.equals(celldata)) {
+
+					System.out.println("Actor present on page " + celldata);
+				} else {
+					System.out.println("Actor Not present on page " + celldata);
+				}
+
+				if (actor2.equals(celldata1)) {
+					System.out.println("Actor present on page " + celldata1);
+
+				} else {
+
+					System.out.println("Actor not present");
+				}
+				WebElement reldate = driver.findElement(By.xpath("//div[@id='additional']/table/tbody/tr[2]/td[2]"));
+
+				String reltext = reldate.getText().trim();
+
+				String cellvalue1 = readsheet.getRow(i).getCell(4).getStringCellValue();
+
+				if (reltext.equals((cellvalue1))) {
+					System.out.println("Release date present on page " + reltext);
+
+				} else
+
+				{
+					System.out.println("Fail");
+				}
+				driver.navigate().to("http://www.tcm.com/tcmdb/");
+
+			}
+		}catch(Exception e){
+			System.out.println("Issue " + e.getMessage());
+		}
+	}
+	
+	public void closebrowser() throws Exception{
+		workbook.close();
+		driver.close();
+		driver.quit();
+	}
+	
+
+	public static void main(String[] args) throws Exception{
+		testturner run = new testturner();
+		run.launchurl();
+		run.checkMovies();
+		run.closebrowser();
+
+	}
+}
